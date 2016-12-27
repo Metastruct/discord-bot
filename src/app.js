@@ -118,4 +118,30 @@ metaBot.registerCommand("unban", (msg, args) => {
     });
 });
 
+metaBot.registerCommand("banlist", (msg, args) => {
+    if (metaBot.isDeveloper(msg.member) === false) { return ":rotating_light: You are not allowed to use this command!"; } // this is just temp fix because eris has a small bug
+
+
+    msg.channel.guild.getBans().then((userArray) => {
+        var listMessage = `:notepad_spiral:  **Bans (${userArray.length})**\n\`\`\`xl`;
+
+        var longestName = 0;
+        userArray.forEach((user) => { 
+            var nameLength = user.username.length;
+            if (nameLength > longestName) { longestName = nameLength; }
+        });
+
+        longestName += 2;
+        userArray.forEach((user) => {
+            var fillSpaces = longestName - user.username.length;
+            listMessage += `\n${user.username}${" ".repeat(fillSpaces)}<${user.id}>`;
+        });
+
+        listMessage += `\n\`\`\``;
+        msg.channel.createMessage(listMessage);
+    }).catch(() => {
+        msg.channel.createMessage(`:rotating_light:  Error retrieving banlist.`);
+    });
+}, { aliases: [ "bans" ] });
+
 metaBot.connect();
