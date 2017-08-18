@@ -1,6 +1,5 @@
 var eris = require("eris");
 var config = require("../config.js");
-// const util = require("util"); // used for util.inspect in print calls
 
 var metaBot = new eris.CommandClient(config.botToken, {}, {
     defaultCommandOptions: {
@@ -28,7 +27,7 @@ metaBot.activityLog = function(emote, title, logData) {
     metaBot.createMessage(config.activityChannel, activityMessage);
 };
 
-metaBot.isDeveloper = function(guildMember) { // was for temp fix, keeping around 'cause why not
+metaBot.isDeveloper = function(guildMember) {
     if (guildMember.roles.indexOf(config.developerRole) !== -1) { return true; }
     return false;
 };
@@ -41,12 +40,6 @@ metaBot.isBanned = function(guild, userID) {
     }).catch(() => false);
 };
 
-metaBot.on("ready", () => {
-    // print debug stuff..?
-});
-
-// commands
-
 metaBot.registerCommand("kick", (msg, args) => {
     // if (metaBot.isDeveloper(msg.member) === false) { return ":rotating_light: You are not allowed to use this command!"; } // this was just temp fix because eris had a small bug
 
@@ -58,12 +51,6 @@ metaBot.registerCommand("kick", (msg, args) => {
         reason          = reason < 2 ? "No reason given." : reason;
 
     if (targetUser) {
-        targetUser.getDMChannel().then((channel) => {
-            channel.createMessage(":boot: You have been kicked from " + msg.channel.guild.name + " by " + msg.member.username + " for the following reason:\n\n`" + reason + "`");
-        }).catch(() => {
-            console.log("User " + targetUser.username + "(" + targetUserID + ") could not be messaged. (Blocked the bot or allows DMs for friends only)");
-        });
-
         msg.channel.guild.kickMember(targetUserID, 0).then(() => {
             metaBot.activityLog("mans_shoe", "User – Kick", {
                 "User": `${targetUser ? targetUser.username : "Unknown User" } <${targetUserID}>`,
@@ -72,6 +59,12 @@ metaBot.registerCommand("kick", (msg, args) => {
             });
 
             msg.channel.createMessage(`:rotating_light:  <@${targetUserID}> has been kicked. (Reason: ${reason})`);
+
+            targetUser.getDMChannel().then((channel) => {
+                channel.createMessage(":boot: You have been kicked from " + msg.channel.guild.name + " by " + msg.member.username + " for the following reason:\n\n`" + reason + "`");
+            }).catch(() => {
+                console.log("User " + targetUser.username + "(" + targetUserID + ") could not be messaged. (Blocked the bot or allows DMs for friends only)");
+            });
         }).catch(() => {
             msg.channel.createMessage(`:rotating_light:  <@${targetUserID}> could not be kicked.`);
         });
@@ -93,12 +86,6 @@ metaBot.registerCommand("ban", (msg, args) => {
     metaBot.isBanned(msg.channel.guild, targetUserID).then((isBanned) => {
         if (isBanned === true) { msg.channel.createMessage(`:rotating_light:  <@${targetUserID}> is already banned.`); return; }
 
-        targetUser.getDMChannel().then((channel) => {
-            channel.createMessage(":hammer: You have been banned from " + msg.channel.guild.name + " by " + msg.member.username + " for the following reason:\n\n`" + reason + "`");
-        }).catch(() => {
-            console.log("User " + targetUser.username + "(" + targetUserID + ") could not be messaged. (Blocked the bot or allows DMs for friends only)");
-        });
-
         msg.channel.guild.banMember(targetUserID, 0).then(() => {
             metaBot.activityLog("lock", "User – Ban", {
                 "User": `${targetUser ? targetUser.username : "Unknown User" } <${targetUserID}>`,
@@ -107,6 +94,12 @@ metaBot.registerCommand("ban", (msg, args) => {
             });
 
             msg.channel.createMessage(`:rotating_light:  <@${targetUserID}> has been banned. (Reason: ${reason})`);
+            
+            targetUser.getDMChannel().then((channel) => {
+                channel.createMessage(":hammer: You have been banned from " + msg.channel.guild.name + " by " + msg.member.username + " for the following reason:\n\n`" + reason + "`");
+            }).catch(() => {
+                console.log("User " + targetUser.username + "(" + targetUserID + ") could not be messaged. (Blocked the bot or allows DMs for friends only)");
+            });
         }).catch(() => {
             msg.channel.createMessage(`:rotating_light:  <@${targetUserID}> could not be banned.`);
         });
